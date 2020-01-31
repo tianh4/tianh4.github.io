@@ -14,8 +14,6 @@ categories: [Python, Django, Web, BBS, Tutorial]
 
 这份文档以 MTV 体系结构创建一个 BBS 系统。
 
-<img src="image-20200131032039867.png" alt="image-20200131032039867" style="zoom:50%;" />
-
 在此过程中介绍了 Django 开发中的一些方面，包括
 
 1. 配置文件
@@ -97,7 +95,8 @@ DATABASES = {
 
 运行 `python manage.py migrate` 进行数据库迁移，这之后在 MySQL 可以发现数据库不是空的了：
 
-```shell script
+
+```
 mysql> use django_bbs;
 Database changed
 mysql> show tables;
@@ -118,6 +117,7 @@ mysql> show tables;
 10 rows in set (0.01 sec)
 ```
 
+
 #### 1.1.2.1 数据库迁移
 
 Django 中进行数据库迁移有两个命令：
@@ -133,7 +133,7 @@ Django 中进行数据库迁移有两个命令：
 
 为了防止重复迁移，Django 在 `django_migrations` 这个表中记录了每一次迁移，如：
 
-```shell script
+```
 mysql> select * from django_migrations;
 +----+--------------+------------------------------------------+----------------------------+
 | id | app          | name                                     | applied                    |
@@ -165,7 +165,7 @@ mysql> select * from django_migrations;
 
 运行：
 
-```shell script
+```
 (venv) ...\tianh_bbs>python manage.py createsuperuser
 用户名 (leave blank to use 'tianh'): admin
 电子邮件地址: admin@email.com
@@ -267,7 +267,7 @@ INSTALLED_APPS = [
 
 迁移后可以在 MySQL 中发现已经创建了新的表：
 
-```shell script
+```
 mysql> desc post_topic;
 +---------------+--------------+------+-----+---------+----------------+
 | Field         | Type         | Null | Key | Default | Extra          |
@@ -305,7 +305,7 @@ mysql> desc post_topic;
 
 #### 2.3.1.1 通过实例化 Model 创建实例
 
-```shell script
+```
 (venv) ...\bbs\tianh_bbs>python manage.py shell
 Python 3.7.3 (v3.7.3:ef4ec6ed12, Mar 25 2019, 22:22:05) [MSC v.1916 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
@@ -322,7 +322,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 #### 2.3.1.2 通过 objects 创建实例
 
-```shell script
+```
 user = User.objects.get(username='admin')
 topic_2 = Topic.objects.create(title='second topic', content='This is the second topic!', user=user)
 Comment.objects.create(content='good!', topic=topic_2, up=30, down=17)
@@ -330,7 +330,7 @@ Comment.objects.create(content='good!', topic=topic_2, up=30, down=17)
 
 这两种方法都可以改变数据表
 
-```shell script
+```
 mysql> select * from post_topic;
 +----+----------------------------+----------------------------+--------------+---------------------------+-----------+---------+
 | id | created_time               | last_modified              | title        | content                   | is_online | user_id |
@@ -358,7 +358,7 @@ mysql> select * from post_comment;
 
 运行命令
 
-```shell script
+```
 >>> from post.models import Topic,Comment
 >>> from django.contrib.auth.models import User
 >>> Topic.objects.get(id=1)
@@ -393,7 +393,7 @@ except Topic.MultipleObjectsReturned:
 
 这种方法返回元组 `(object, created)` 
 
-```shell script
+```
 >>> Topic.objects.get_or_create(id=1, title='first topic')
 (<Topic: 1: first topic>, False)
 >>> Topic.objects.get_or_create(user=user, title='fourth topic', content='This is the fourth topic!')
@@ -406,7 +406,7 @@ except Topic.MultipleObjectsReturned:
 
 运行命令
 
-```shell script
+```
 >>> Topic.objects.first()
 <Topic: 2: second topic>
 >>> Topic.objects.last()
@@ -460,7 +460,7 @@ filter() 函数将参数转化成 WHERE 子句。
 
 例子：
 
-```shell script
+```
 >>> from post.models import Topic,Comment
 >>> from django.contrib.auth.models import User
 >>> Topic.objects.filter()
@@ -477,7 +477,7 @@ exclude() 与 filter() 功能相反，返回不满去条件的结果。
 
 ##### 2.3.2.2.6 链式查询
 
-```shell script
+```
 >>> Comment.objects.filter(
 ... content__contains='good'
 ... ).exclude(
@@ -496,21 +496,21 @@ exclude() 与 filter() 功能相反，返回不满去条件的结果。
 
 values() 可以返回由字典组成的 QuerySet，如
 
-```shell script
+```
 >>> Comment.objects.values('id','up')
 <QuerySet [{'id': 2, 'up': 30}, {'id': 1, 'up': 88}]>
 ```
 
 values_list() 可以返回由元组组成的 QuerySet，如
 
-```shell script
+```
 >>> Comment.objects.values_list('id','up')
 <QuerySet [(2, 30), (1, 88)]>
 ```
 
 使用 `flat` 参数还可以返回单个元素组成的 QuerySet，如
 
-```shell script
+```
 >>> Comment.objects.values_list('id',flat=True)
 <QuerySet [2, 1]>
 ```
@@ -544,7 +544,7 @@ RawQuerySet 支持索引和切片，但是不能在 RawQuerySet 上执行过滤�
 因为 Comment 中定义了 ForeignKey 指向 Topic，所以每一个 Topic 对象都有一个管理器可以用来查询和它相关的 Comment 实例。
 默认管理器名称为 `小写模型名_set`。
 
-```shell script
+```
 >>> topic = Topic.objects.get(id=1)
 >>> topic.comment_set.all()
 <QuerySet [<Comment: 1: very good!>]>
@@ -554,7 +554,7 @@ RawQuerySet 支持索引和切片，但是不能在 RawQuerySet 上执行过滤�
 
 ##### 2.3.2.4.2 跨关系查询
 
-```shell script
+```
 >>> Comment.objects.filter(topic__title__contains='first')
 <QuerySet [<Comment: 1: Very good>]>
 ```
@@ -567,7 +567,7 @@ F 对象在没有获取数据值的情况下对某一字段进行引用。F 对�
 
 F 对象支持跨关系查询
 
-```shell script
+```
 >>> Comment.objects.filter(topic__content__contains=F('topic__t
 itle'))
 <QuerySet [<Comment: 2: good!>, <Comment: 1: Very good>]>
@@ -575,7 +575,7 @@ itle'))
 
 **例 1 赞小于等于反对**
 
-```shell script
+```
 >>> from django.db.models import F
 >>> Comment.objects.filter(up__lte=F('down'))
 <QuerySet []>
@@ -605,7 +605,7 @@ comment.save()
 
 Q 对象用于复杂查询，可以用 `&`，`|` 组合，可以用 `~` 取反。
 
-```shell script
+```
 >>> from django.db.models import Q
 >>> Comment.objects.filter(Q(up__gt=10)|Q(down__gt=10))
 <QuerySet [<Comment: 2: good!>, <Comment: 1: Very good>]>
@@ -617,7 +617,7 @@ Q 对象用于复杂查询，可以用 `&`，`|` 组合，可以用 `~` 取反�
 
 ##### 2.3.2.7.1 聚合查询
 
-```shell script
+```
 >>> from django.db.models import Avg, Count, Min, Max, Sum
 >>> Comment.objects.filter(topic=1).aggregate(up_s=Sum('up'))
 {'up_s': 88}
@@ -629,7 +629,7 @@ Q 对象用于复杂查询，可以用 `&`，`|` 组合，可以用 `~` 取反�
 
 默认情况下，`annotate` 会对每一个 Model 对象计算统计值。
 
-```shell script
+```
 >>> for topic in Topic.objects.annotate(Count('comment')):
 ...     print('%d: %d' % (topic.id, topic.comment__count))
 ...
@@ -641,7 +641,7 @@ Q 对象用于复杂查询，可以用 `&`，`|` 组合，可以用 `~` 取反�
 
 比如，要获得每个 Topic 下所有 up 的和，
 
-```shell script
+```
 >>> Comment.objects.values('topic_id').annotate(Sum('up')).order_by()
 <QuerySet [{'topic_id': 2, 'up__sum': 30}, {'topic_id': 1, 'up_
 _sum': 88}]>
@@ -653,7 +653,7 @@ _sum': 88}]>
 
 #### 2.3.3.1 改变 Model 实例
 
-```shell script
+```
 >>> comment = Comment.objects.get(id=1)
 >>> comment.up = 90
 >>> comment.save()
@@ -664,7 +664,7 @@ _sum': 88}]>
 
 Update() 是 QuerySet 的方法，如
 
-```shell script
+```
 >>> Comment.objects.filter(id=1).update(up=90, down=30)
 1
 ```
